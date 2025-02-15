@@ -5,13 +5,12 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.catsgram.exception.ConditionsNotMetException;
 import ru.yandex.practicum.catsgram.exception.NotFoundException;
 import ru.yandex.practicum.catsgram.model.Post;
+import ru.yandex.practicum.catsgram.model.SortOrder;
 import ru.yandex.practicum.catsgram.model.User;
 
 import java.time.Instant;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Stream;
 
 // Указываем, что класс PostService - является бином и его
 // нужно добавить в контекст приложения
@@ -25,8 +24,23 @@ public class PostService {
 		this.userService = userService;
 	}
 
-	public Collection<Post> findAll() {
-		return posts.values();
+	public Collection<Post> findAll(int from, int size, SortOrder sort) {
+		Stream<Post> postSorted = posts.values().stream();
+		if (SortOrder.DESCENDING == sort) {
+			postSorted = postSorted.sorted(Comparator.comparing(Post::getPostDate).reversed());
+		} else {
+			postSorted = postSorted.sorted(Comparator.comparing(Post::getPostDate));
+		}
+		List<Post> postList = postSorted.toList();
+		if (from == -1) {
+			from = postList.size() <= size ? 0 : postList.size() - size;
+		}
+		return postList.subList(from, from + size);
+	}
+
+	public Post findById(long postId) {
+		return Optional.ofNullable(posts.get(postId))
+				.orElseThrow(() -> new NotFoundException(String.format("Пост № %d не найден", postId)));
 	}
 
 	public Post create(Post post) {
@@ -67,4 +81,5 @@ public class PostService {
 				.orElse(0);
 		return ++currentMaxId;
 	}
+
 }

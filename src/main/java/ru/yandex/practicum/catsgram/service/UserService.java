@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.catsgram.exception.ConditionsNotMetException;
 import ru.yandex.practicum.catsgram.exception.DuplicatedDataException;
 import ru.yandex.practicum.catsgram.exception.NotFoundException;
+import ru.yandex.practicum.catsgram.model.Post;
 import ru.yandex.practicum.catsgram.model.User;
 
 import java.time.Instant;
@@ -19,6 +20,11 @@ public class UserService {
 
 	public Collection<User> findAll() {
 		return users.values();
+	}
+
+	public User findById(long userId) {
+		return Optional.ofNullable(users.get(userId))
+				.orElseThrow(() -> new NotFoundException(String.format("Пользователь № %d не найден", userId)));
 	}
 
 	public User create(User user) {
